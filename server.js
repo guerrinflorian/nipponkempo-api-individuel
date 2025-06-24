@@ -12,7 +12,11 @@ import tournament from "./routes/tournament.js";
 import category from "./routes/category.js";
 import participants from "./routes/participants.js";
 import tournamentComments from "./routes/tournamentComments.js";
+import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // init de Fastify
 const fastify = Fastify({ logger: true });
