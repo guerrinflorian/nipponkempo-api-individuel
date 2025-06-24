@@ -1,0 +1,161 @@
+name: Sécurité Automatique KEMPO API
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 2 * * 1" # audit automatique tous les lundis à 2h du matin
+
+jobs:
+  security-audit:
+    name: "🔒 Audit de sécurité"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 Récupérer le code source"
+        uses: actions/checkout@v3
+
+      - name: "⚙️ Configurer Node.js version 20.12.1"
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.1"
+
+      - name: "📦 Installer les dépendances"
+        run: npm ci
+
+      - name: "🚨 Vérifier les vulnérabilités npm"
+        run: |
+          echo "🔍 Recherche des vulnérabilités de sécurité dans les packages npm..."
+          npm audit --audit-level moderate
+
+      - name: "🔧 Afficher les corrections disponibles"
+        run: |
+          echo "💡 Liste des corrections automatiques disponibles :"
+          npm audit fix --dry-run
+
+      - name: "📊 Générer le résumé de sécurité"
+        run: |
+          echo "📋 Résumé complet de l'audit de sécurité :"
+          npm audit --audit-level low
+
+  dependency-check:
+    name: "📦 Contrôle des dépendances"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "⚙️ Configurer Node.js version 20.12.1"
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.1"
+
+      - name: "📦 Installer les dépendances"
+        run: npm ci
+
+      - name: "🔍 Détecter les dépendances obsolètes"
+        run: |
+          echo "🔍 Vérification des packages avec des versions obsolètes..."
+          npm outdated || true
+
+      - name: "📋 Lister toutes les dépendances installées"
+        run: |
+          echo "📦 État actuel de toutes les dépendances du projet :"
+          npm ls --depth=0
+
+  secrets-scan:
+    name: "🔑 Détection des secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "🔍 Scanner le code pour détecter les secrets"
+        run: |
+          echo "🔍 Recherche de secrets potentiels dans le code source..."
+
+          # chercher les clés api écrites en dur dans le code
+          if grep -r "api_key\|apikey\|api-key" --include="*.js" . | grep -v "process.env"; then
+            echo "⚠️ ALERTE : Clés API trouvées en dur dans le code !"
+            exit 1
+          fi
+
+          # chercher les mots de passe écrits en dur
+          if grep -r "password.*=" --include="*.js" . | grep -v "passwordUtils\|hashPassword\|comparePassword"; then
+            echo "⚠️ ALERTE : Mots de passe potentiels trouvés en dur !"
+            exit 1
+          fi
+
+          # chercher les secrets jwt écrits en dur
+          if grep -r "jwt.*secret\|secret.*jwt" --include="*.js" . | grep -v "process.env"; then
+            echo "⚠️ ALERTE : Secrets JWT trouvés en dur dans le code !"
+            exit 1
+          fi
+
+          echo "✅ Aucun secret détecté en dur dans le code"
+
+  env-check:
+    name: "🌍 Contrôle des variables d'environnement"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "🔍 Vérifier l'utilisation correcte des variables d'environnement"
+        run: |
+          echo "🔍 Contrôle de l'utilisation sécurisée des variables d'environnement..."
+
+          # vérifier que jwt_secret est bien utilisé via process.env
+          if ! grep -r "process.env.JWT_SECRET" --include="*.js" .; then
+            echo "⚠️ PROBLÈME : JWT_SECRET n'est pas utilisé via process.env"
+            exit 1
+          fi
+
+          # vérifier que email_user est bien utilisé via process.env
+          if ! grep -r "process.env.EMAIL_USER" --include="*.js" .; then
+            echo "⚠️ PROBLÈME : EMAIL_USER n'est pas utilisé via process.env"
+            exit 1
+          fi
+
+          echo "✅ Toutes les variables d'environnement sont correctement utilisées"
+
+  notify-results:
+    name: "📧 Rapport final de sécurité"
+    runs-on: ubuntu-latest
+    needs: [security-audit, dependency-check, secrets-scan, env-check]
+    if: always() # s'exécute même si d'autres jobs échouent
+    steps:
+      - name: "📊 Générer le résumé complet des vérifications"
+        run: |
+          echo "📊 RAPPORT FINAL DE SÉCURITÉ AUTOMATIQUE"
+          echo "========================================"
+          echo "Projet: ${{ github.repository }}"
+          echo "Commit analysé: ${{ github.sha }}"
+          echo "Branche: ${{ github.ref }}"
+          echo "Date de l'analyse: $(date)"
+          echo ""
+
+          if [[ "${{ needs.security-audit.result }}" == "success" ]]; then
+            echo "✅ Audit de sécurité npm: RÉUSSI"
+          else
+            echo "❌ Audit de sécurité npm: ÉCHEC"
+          fi
+
+          if [[ "${{ needs.dependency-check.result }}" == "success" ]]; then
+            echo "✅ Contrôle des dépendances: RÉUSSI" 
+          else
+            echo "❌ Contrôle des dépendances: ÉCHEC"
+          fi
+
+          if [[ "${{ needs.secrets-scan.result }}" == "success" ]]; then
+            echo "✅ Détection des secrets: RÉUSSI"
+          else
+            echo "❌ Détection des secrets: ÉCHEC - SECRETS TROUVÉS !"
+          fi
+
+          if [[ "${{ needs.env-check.result }}" == "success" ]]; then
+            echo "✅ Variables d'environnement: RÉUSSI"
+          else
+            echo "❌ Variables d'environnement: ÉCHEC"
+          fi
+
+          echo ""
+          echo "🔗 Voir les détails complets: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
