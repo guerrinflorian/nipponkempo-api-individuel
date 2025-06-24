@@ -16,10 +16,10 @@ jobs:
       - name: "📥 Récupérer le code source"
         uses: actions/checkout@v3
 
-      - name: "⚙️ Configurer Node.js version 20.12.1"
+      - name: "⚙️ Configurer Node.js version 18"
         uses: actions/setup-node@v3
         with:
-          node-version: "20.12.1"
+          node-version: "18"
 
       - name: "📦 Installer les dépendances"
         run: npm ci
@@ -45,10 +45,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: "⚙️ Configurer Node.js version 20.12.1"
+      - name: "⚙️ Configurer Node.js version 18"
         uses: actions/setup-node@v3
         with:
-          node-version: "20.12.1"
+          node-version: "18"
 
       - name: "📦 Installer les dépendances"
         run: npm ci
@@ -79,9 +79,15 @@ jobs:
             exit 1
           fi
 
-          # chercher les mots de passe écrits en dur
-          if grep -r "password.*=" --include="*.js" . | grep -v "passwordUtils\|hashPassword\|comparePassword"; then
-            echo "⚠️ ALERTE : Mots de passe potentiels trouvés en dur !"
+          # chercher les mots de passe écrits en dur (exclure destructuring et variables normales)
+          if grep -r "password\s*=\s*['\"][^'\"]*['\"]" --include="*.js" . | grep -v "passwordUtils\|hashPassword\|comparePassword"; then
+            echo "⚠️ ALERTE : Mots de passe trouvés en dur dans le code !"
+            exit 1
+          fi
+
+          # chercher spécifiquement les assignations de mots de passe en dur
+          if grep -r "const password = ['\"]" --include="*.js" .; then
+            echo "⚠️ ALERTE : Variable password assignée en dur !"
             exit 1
           fi
 
