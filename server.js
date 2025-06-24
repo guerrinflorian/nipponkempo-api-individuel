@@ -70,7 +70,20 @@ async function verifyJWT(request, reply) {
 
 //start();
 
-// Ajouter à la place :
+// route de base pour tester
+fastify.get("/", async (request, reply) => {
+  return {
+    message: "API Fastify déployée avec succès !",
+    status: "running",
+    timestamp: new Date().toISOString(),
+  };
+});
+
+// route health check
+fastify.get("/health", async (request, reply) => {
+  return { status: "ok", uptime: process.uptime() };
+});
+
 export default async function handler(req, res) {
   await fastify.ready();
   fastify.server.emit("request", req, res);
