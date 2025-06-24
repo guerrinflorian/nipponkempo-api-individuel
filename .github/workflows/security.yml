@@ -91,9 +91,15 @@ jobs:
             exit 1
           fi
 
-          # chercher les secrets jwt écrits en dur
-          if grep -r "jwt.*secret\|secret.*jwt" --include="*.js" . | grep -v "process.env"; then
+          # chercher les secrets jwt écrits en dur (pas les variables qui viennent de config)
+          if grep -r "secret\s*:\s*['\"][^'\"]*['\"]" --include="*.js" . | grep -v "process.env\|config.js"; then
             echo "⚠️ ALERTE : Secrets JWT trouvés en dur dans le code !"
+            exit 1
+          fi
+
+          # chercher les assignations directes de secrets
+          if grep -r "const.*secret.*=.*['\"]" --include="*.js" . | grep -v "process.env"; then
+            echo "⚠️ ALERTE : Secret JWT assigné en dur !"
             exit 1
           fi
 
