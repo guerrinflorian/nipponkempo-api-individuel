@@ -24,6 +24,12 @@ fastify.register(FastifyJwt, {
   },
 });
 
+// enregistrer le plugin static
+fastify.register(import("@fastify/static"), {
+  root: join(__dirname, "public"),
+  prefix: "/",
+});
+
 fastify.register(FastifyCors, {
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

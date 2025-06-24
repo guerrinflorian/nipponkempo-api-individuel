@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import crypto from "crypto";
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
@@ -74,35 +74,28 @@ export default async function usersRoutes(fastify, options) {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
-        subject: "🔑 Vérifiez votre adresse e mail",
+        subject: "🔑 Vérifiez votre adresse e-mail",
         html: `
             <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
               <div style="max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); margin: auto;">
                 <div style="text-align: center;">
-                  <img src="cid:logo" alt="logo" style="width: 80px; margin-bottom: 20px;">
+                  <img src="https://nipponkempo-api-individuel.vercel.app/images/logo.png" alt="logo" style="width: 80px; margin-bottom: 20px;">
                 </div>
                 <h2 style="color: #333; text-align: center;">Vérification de votre email</h2>
-                <p style="color: #555; text-align: center;">Merci de vous etre inscrit Veuillez cliquer sur le lien pour verifier votre adresse e mail :</p>
-                <p style="text-align: center;"><a href="${verificationLink}" style="color: blue; text-decoration: underline; font-size: 18px;">Verifier mon email</a></p>
+                <p style="color: #555; text-align: center;">Merci de vous être inscrit ! Veuillez cliquer sur le lien pour vérifier votre adresse e-mail :</p>
+                <p style="text-align: center;"><a href="${verificationLink}" style="color: blue; text-decoration: underline; font-size: 18px;">Vérifier mon email</a></p>
                 <p style="color: #555; text-align: center;">Ce lien est valable 24 heures.</p>
-                <p style="text-align: center; color: #777;">Si vous n etes pas a l origine de cette inscription ignorez cet email.</p>
+                <p style="text-align: center; color: #777;">Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.</p>
                 <hr style="border: none; border-top: 1px solid #ddd;">
                 <p style="text-align: center; color: #888;">Sécurité avant tout | NIPPON KEMPO</p>
               </div>
             </div>
           `,
-        attachments: [
-          {
-            filename: "logo.png",
-            path: "./public/images/logo.png",
-            cid: "logo",
-          },
-        ],
       });
 
       reply.send({
         message:
-          "Utilisateur cree avec succes. Vérifiez votre email pour l activer.",
+          "Utilisateur créé avec succès. Vérifiez votre email pour l'activer.",
         userId: data[0].id,
       });
     } catch (err) {
@@ -124,13 +117,13 @@ export default async function usersRoutes(fastify, options) {
         .single();
 
       if (error || !user) {
-        return reply.code(400).send({ message: "Lien invalide ou expire." });
+        return reply.code(400).send({ message: "Lien invalide ou expiré." });
       }
 
       if (new Date() > new Date(user.email_verification_expiry)) {
         return reply
           .code(400)
-          .send({ message: "Lien expire. Veuillez vous reinscrire." });
+          .send({ message: "Lien expiré. Veuillez vous réinscrire." });
       }
 
       // activation verification
@@ -184,7 +177,7 @@ export default async function usersRoutes(fastify, options) {
         return reply.code(404).send({ message: "Utilisateur introuvable." });
       }
       if (user.email_verified) {
-        return reply.code(400).send({ message: "Email deja verifie." });
+        return reply.code(400).send({ message: "Email déjà vérifié." });
       }
 
       // generation nouveau token
@@ -203,33 +196,26 @@ export default async function usersRoutes(fastify, options) {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
-        subject: "🔑 Vérifiez votre adresse e mail",
+        subject: "🔑 Vérifiez votre adresse e-mail",
         html: `
                 <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
                     <div style="max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); margin: auto;">
                         <div style="text-align: center;">
-                            <img src="cid:logo" alt="logo" style="width: 80px; margin-bottom: 20px;">
+                            <img src="https://nipponkempo-api-individuel.vercel.app/images/logo.png" alt="logo" style="width: 80px; margin-bottom: 20px;">
                         </div>
                         <h2 style="color: #333; text-align: center;">Vérification de votre email</h2>
-                        <p style="color: #555; text-align: center;">Veuillez cliquer sur le lien pour verifier votre adresse e mail :</p>
-                        <p style="text-align: center;"><a href="${verificationLink}" style="color: blue; text-decoration: underline; font-size: 18px;">Verifier mon email</a></p>
+                        <p style="color: #555; text-align: center;">Veuillez cliquer sur le lien pour vérifier votre adresse e-mail :</p>
+                        <p style="text-align: center;"><a href="${verificationLink}" style="color: blue; text-decoration: underline; font-size: 18px;">Vérifier mon email</a></p>
                         <p style="color: #555; text-align: center;">Ce lien est valable 24 heures.</p>
-                        <p style="text-align: center; color: #777;">Si vous n etes pas a l origine de cette demande ignorez cet email.</p>
+                        <p style="text-align: center; color: #777;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
                         <hr style="border: none; border-top: 1px solid #ddd;">
-                        <p style="text-align: center; color: #888;">Securite avant tout | NIPPON KEMPO</p>
+                        <p style="text-align: center; color: #888;">Sécurité avant tout | NIPPON KEMPO</p>
                     </div>
                 </div>
             `,
-        attachments: [
-          {
-            filename: "logo.png",
-            path: "./public/images/logo.png",
-            cid: "logo",
-          },
-        ],
       });
 
-      reply.send({ message: "Email de confirmation renvoye avec succes." });
+      reply.send({ message: "Email de confirmation renvoyé avec succès." });
     } catch (err) {
       fastify.log.error(err);
       reply.status(500).send({ message: "Erreur serveur" });
@@ -244,8 +230,8 @@ export default async function usersRoutes(fastify, options) {
     <html lang="fr">
       <head>
         <meta charset="UTF-8">
-        <title>Verification reussie</title>
-        <meta http-equiv="refresh" content="5;url=http://localhost:5173/">
+        <title>Vérification réussie</title>
+        <meta http-equiv="refresh" content="5;url=https://nipponkempo-sitevitrine-individuel.vercel.app/">
         <script>
           let seconds = 5;
           function updateCountdown() {
@@ -259,9 +245,9 @@ export default async function usersRoutes(fastify, options) {
         </script>
       </head>
       <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-        <h1> Email verifie avec succes !</h1>
-        <p>Redirection vers l accueil dans <span id="countdown">5</span> secondes...</p>
-        <p>Si vous n etes pas redirige cliquez <a href="http://localhost:5173/">ici</a>.</p>
+        <h1>Email vérifié avec succès !</h1>
+        <p>Redirection vers l'accueil dans <span id="countdown">5</span> secondes...</p>
+        <p>Si vous n'êtes pas redirigé, cliquez <a href="https://nipponkempo-sitevitrine-individuel.vercel.app/">ici</a>.</p>
       </body>
     </html>
   `);
@@ -283,7 +269,7 @@ export default async function usersRoutes(fastify, options) {
       if (!users.length) {
         return reply
           .code(401)
-          .send({ message: "Utilisateur non trouve ou compte inactif." });
+          .send({ message: "Utilisateur non trouvé ou compte inactif." });
       }
 
       const user = users[0];
@@ -377,7 +363,7 @@ export default async function usersRoutes(fastify, options) {
           .update({ is_active: false })
           .eq("id", id);
         if (error) throw error;
-        reply.send({ message: "Utilisateur desactive avec succes" });
+        reply.send({ message: "Utilisateur désactivé avec succès" });
       } catch (err) {
         fastify.log.error(err);
         reply.status(500).send("Erreur serveur");
@@ -415,7 +401,7 @@ export default async function usersRoutes(fastify, options) {
         if (!isPasswordValid) {
           return reply
             .status(401)
-            .send({ message: "L ancien mot de passe est incorrect." });
+            .send({ message: "L'ancien mot de passe est incorrect." });
         }
         const hashedPassword = await hashPassword(newPassword);
         const { error: updateError } = await supabase
@@ -423,17 +409,17 @@ export default async function usersRoutes(fastify, options) {
           .update({ password: hashedPassword })
           .eq("id", id);
         if (updateError) throw updateError;
-        return reply.send({ message: "Mot de passe mis a jour avec succes." });
+        return reply.send({ message: "Mot de passe mis à jour avec succès." });
       } catch (err) {
         fastify.log.error(err);
         if (err.code === "22P02") {
           return reply
             .status(400)
-            .send({ message: "Donnees invalides envoyees." });
+            .send({ message: "Données invalides envoyées." });
         }
         return reply
           .status(500)
-          .send({ message: "Erreur serveur veuillez reessayer plus tard." });
+          .send({ message: "Erreur serveur, veuillez réessayer plus tard." });
       }
     }
   );
@@ -446,7 +432,7 @@ export default async function usersRoutes(fastify, options) {
       if (!email || !newPassword || !code) {
         return reply
           .code(400)
-          .send({ message: "Requete invalide Tous les champs sont requis." });
+          .send({ message: "Requête invalide. Tous les champs sont requis." });
       }
       const { data: user, error } = await supabase
         .from("users")
@@ -455,13 +441,13 @@ export default async function usersRoutes(fastify, options) {
         .single();
       if (error || !user || !user.reset_token) {
         return reply.code(400).send({
-          message: "Reinitialisation du mot de passe non valide ou expiree.",
+          message: "Réinitialisation du mot de passe non valide ou expirée.",
         });
       }
       const expiryDate = new Date(user.reset_token_expiry + "Z");
       const nowUTC = new Date();
       if (nowUTC > expiryDate) {
-        return reply.code(400).send({ message: "Code expire." });
+        return reply.code(400).send({ message: "Code expiré." });
       }
       const decryptedCode = CryptoJS.AES.decrypt(
         user.reset_token,
@@ -480,7 +466,7 @@ export default async function usersRoutes(fastify, options) {
         })
         .eq("id", user.id);
       if (updateError) throw updateError;
-      reply.send({ message: "Mot de passe mis a jour avec succes" });
+      reply.send({ message: "Mot de passe mis à jour avec succès" });
     } catch (err) {
       fastify.log.error(err);
       reply.status(500).send({ message: "Erreur serveur" });
@@ -499,7 +485,7 @@ export default async function usersRoutes(fastify, options) {
         .single();
       if (error || !user) {
         return reply.code(404).send({
-          message: "Utilisateur non trouve avec cette adresse email.",
+          message: "Utilisateur non trouvé avec cette adresse email.",
         });
       }
       const generateCode = () => {
@@ -534,30 +520,23 @@ export default async function usersRoutes(fastify, options) {
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
             <div style="max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); margin: auto;">
               <div style="text-align: center;">
-                <img src="cid:logo" alt="logo" style="width: 80px; margin-bottom: 20px;">
+                <img src="https://nipponkempo-api-individuel.vercel.app/images/logo.png" alt="logo" style="width: 80px; margin-bottom: 20px;">
               </div>
               <h2 style="color: #333; text-align: center;">Code de connexion temporaire</h2>
-              <p style="color: #555; text-align: center;">Vous avez demande un code de connexion temporaire</p>
+              <p style="color: #555; text-align: center;">Vous avez demandé un code de connexion temporaire</p>
               <p style="color: #555; text-align: center;">Utilisez ce code pour poursuivre :</p>
               <div style="text-align: center; font-size: 24px; font-weight: bold; background: #eee; padding: 10px; border-radius: 5px;">
                 ${resetCode}
               </div>
-              <p style="color: #555; text-align: center; margin-top: 20px;">Ce code est valable 10 minutes Ne le partagez pas.</p>
-              <p style="text-align: center; color: #777;">Si vous n etes pas a l origine de cette demande ignorez cet email.</p>
+              <p style="color: #555; text-align: center; margin-top: 20px;">Ce code est valable 10 minutes. Ne le partagez pas.</p>
+              <p style="text-align: center; color: #777;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
               <hr style="border: none; border-top: 1px solid #ddd;">
-              <p style="text-align: center; color: #888;">Securite avant tout | NIPPON KEMPO</p>
+              <p style="text-align: center; color: #888;">Sécurité avant tout | NIPPON KEMPO</p>
             </div>
           </div>
         `,
-        attachments: [
-          {
-            filename: "logo.png",
-            path: "./public/images/logo.png",
-            cid: "logo",
-          },
-        ],
       });
-      reply.send({ message: "Code envoye par email", encryptedCode });
+      reply.send({ message: "Code envoyé par email", encryptedCode });
     } catch (err) {
       fastify.log.error(err);
       reply.status(500).send("Erreur serveur");
@@ -577,12 +556,12 @@ export default async function usersRoutes(fastify, options) {
       if (error || !user) {
         return reply
           .code(400)
-          .send({ userId: -1, message: "Utilisateur non trouve" });
+          .send({ userId: -1, message: "Utilisateur non trouvé" });
       }
       const expiryDate = new Date(user.reset_token_expiry + "Z");
       const nowUTC = new Date();
       if (nowUTC > expiryDate) {
-        return reply.code(400).send({ userId: -1, message: "Code expire." });
+        return reply.code(400).send({ userId: -1, message: "Code expiré." });
       }
       const decryptedCode = CryptoJS.AES.decrypt(
         user.reset_token,
@@ -598,7 +577,7 @@ export default async function usersRoutes(fastify, options) {
     }
   });
 
-  // recup tous les sous-gestionnaires d’un club
+  // recup tous les sous-gestionnaires d'un club
   fastify.get(
     "/clubs/:clubId/assistant-managers",
     { preValidation: verifyJWT },
