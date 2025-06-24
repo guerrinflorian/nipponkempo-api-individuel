@@ -30,12 +30,10 @@ export default async function usersRoutes(fastify, options) {
         .single();
 
       if (existingUser) {
-        return reply
-          .code(400)
-          .send({
-            message:
-              "Un compte avec cet email existe deja. Veuillez vous connecter.",
-          });
+        return reply.code(400).send({
+          message:
+            "Un compte avec cet email existe deja. Veuillez vous connecter.",
+        });
       }
 
       // hachage mot de passe
@@ -96,7 +94,7 @@ export default async function usersRoutes(fastify, options) {
         attachments: [
           {
             filename: "logo.png",
-            path: "./assets/images/logo.png",
+            path: "./public/images/logo.png",
             cid: "logo",
           },
         ],
@@ -225,7 +223,7 @@ export default async function usersRoutes(fastify, options) {
         attachments: [
           {
             filename: "logo.png",
-            path: "./assets/images/logo.png",
+            path: "./public/images/logo.png",
             cid: "logo",
           },
         ],
@@ -456,11 +454,9 @@ export default async function usersRoutes(fastify, options) {
         .eq("email", email)
         .single();
       if (error || !user || !user.reset_token) {
-        return reply
-          .code(400)
-          .send({
-            message: "Reinitialisation du mot de passe non valide ou expiree.",
-          });
+        return reply.code(400).send({
+          message: "Reinitialisation du mot de passe non valide ou expiree.",
+        });
       }
       const expiryDate = new Date(user.reset_token_expiry + "Z");
       const nowUTC = new Date();
@@ -502,11 +498,9 @@ export default async function usersRoutes(fastify, options) {
         .eq("email", email)
         .single();
       if (error || !user) {
-        return reply
-          .code(404)
-          .send({
-            message: "Utilisateur non trouve avec cette adresse email.",
-          });
+        return reply.code(404).send({
+          message: "Utilisateur non trouve avec cette adresse email.",
+        });
       }
       const generateCode = () => {
         const chars =
@@ -558,7 +552,7 @@ export default async function usersRoutes(fastify, options) {
         attachments: [
           {
             filename: "logo.png",
-            path: "./assets/images/logo.png",
+            path: "./public/images/logo.png",
             cid: "logo",
           },
         ],
